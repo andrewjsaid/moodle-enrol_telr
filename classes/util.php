@@ -59,27 +59,4 @@ final class util {
         $eventdata->smallmessage      = '';
         message_send($eventdata);
     }
-
-    /**
-     * Silent exception handler.
-     *
-     * @return callable exception handler
-     */
-    public static function get_exception_handler() {
-        return function($ex) {
-            $info = get_exception_info($ex);
-
-            $logerrmsg = "enrol_telr exception handler: ".$info->message;
-            if (debugging('', DEBUG_NORMAL)) {
-                $logerrmsg .= ' Debug: '.$info->debuginfo."\n".format_backtrace($info->backtrace, true);
-            }
-            error_log($logerrmsg);
-
-            if (http_response_code() == 200) {
-                http_response_code(500);
-            }
-
-            exit(0);
-        };
-    }
 }

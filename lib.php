@@ -206,18 +206,17 @@ class enrol_telr_plugin extends enrol_plugin {
                 echo '<p><a href="'.$wwwroot.'/login/">'.get_string('loginsite').'</a></p>';
                 echo '</div>';
             } else {
-                //Sanitise some fields before building the Telr form
-                $coursefullname  = format_string($course->fullname, true, array('context'=>$context));
-                $courseshortname = $shortname;
-                $userfullname    = fullname($USER);
-                $userfirstname   = $USER->firstname;
-                $userlastname    = $USER->lastname;
-                $useraddress     = $USER->address;
-                $usercity        = $USER->city;
-                $usercountry     = $USER->country;
-                $instancename    = $this->get_instance_name($instance);
+                
+                $pd = new stdClass();
+                $pd.storeid = $this->get_config('storeid');
+                $pd.status = 0;
+                $pd.timecreated = time();
+                $pd.courseid = $course->id;
+                $pd.userid = $USER->id;
+                $pd.instanceid = instance->id;
+                $pd.id = $DB->insert_record("enrol_telr_pending", $pd);
 
-                /// Open a connection back to Telr to get the URL
+                /// Open a connection to Telr to get the URL
                 $c = new curl();
                 $telrdomain = 'secure.telr.com';
                 $options = array(
@@ -233,9 +232,9 @@ class enrol_telr_plugin extends enrol_plugin {
                     'ivp_test'      => $this->get_config('testmode'),
                     'ivp_amount'    => $cost,
                     'ivp_currency'  => $instance->currency,
-                    'ivp_cart'      => "{$USER->id}-{$course->id}-{$instance->id}",
-                    'ivp_desc'      => courseshortname,
-                    'return_auth'   => "$CFG->wwwroot/enrol/paypal/return.php?id=$course->id",
+                    'ivp_cart'      => "U{$USER->id}-C{$course->id}-I{$instance->id}",
+                    'ivp_desc'      => $shortname,
+                    'return_auth'   => "$CFG->wwwroot/enrol/telr/check.php?id=$pd->id",
                     'return_decl'   => $CFG->wwwroot,
                     'return_can'    => $CFG->wwwroot,
                     'ivp_framed'    => 2,
@@ -250,16 +249,22 @@ class enrol_telr_plugin extends enrol_plugin {
                 $result = $c->post($location, $telrreq, $options);
 
                 if ($c->get_errno()) {
-                    \enrol_telr\util::get_exception_handler("Could not connect to telr", $result);
+                    \enrol_telr\util::message_telr_error_to_admin("Could not connect to telr", $result);
+                    die() // TODO AJS better handling here?
                 }
 
                 $jsonResult = json_decode($result);
                 if(isset($jsonResult->error)) {
-                    \enrol_telr\util::get_exception_handler("Telr error message", $result);
+                    \enrol_telr\util::message_telr_error_to_admin("Telr error message", $result);
+                    die() // TODO AJS better handling here?
                 }
 
                 $ref = $jsonResult->order->ref;
                 $telrorderurl = $jsonResult->order->url;
+
+                $pd.orderref = $ref;
+                $pd.status = 1;
+                $DB->update_record('enrol_telr_pending', $pd);
 
                 include($CFG->dirroot.'/enrol/telr/enrol.html');
             }
