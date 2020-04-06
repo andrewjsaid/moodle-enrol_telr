@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="enrol/paypal/db" VERSION="20180625" COMMENT="XMLDB file for Moodle enrol/paypal"
+<XMLDB PATH="enrol/telr/db" VERSION="20180625" COMMENT="XMLDB file for Moodle enrol/telr"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="enrol_paypal" COMMENT="Holds all known information about PayPal transactions">
+    <TABLE NAME="enrol_telr" COMMENT="Holds all known information about Telr transactions">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="business" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>

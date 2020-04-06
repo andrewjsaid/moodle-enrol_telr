@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 
 $tasks = array(
     array(
-        'classname' => '\enrol_paypal\task\process_expirations',
+        'classname' => '\enrol_telr\task\process_expirations',
         'blocking' => 0,
         'minute' => '*',
         'hour' => '*',

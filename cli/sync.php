@@ -42,22 +42,22 @@ if ($unrecognized) {
 
 if ($options['help']) {
     $help =
-        "Process PayPal expiration sync
+        "Process Telr expiration sync
 
 Options:
 -v, --verbose         Print verbose progress information
 -h, --help            Print out this help
 
 Example:
-\$ sudo -u www-data /usr/bin/php enrol/paypal/cli/sync.php
+\$ sudo -u www-data /usr/bin/php enrol/telr/cli/sync.php
 ";
 
     echo $help;
     die;
 }
 
-if (!enrol_is_enabled('paypal')) {
-    echo('enrol_paypal plugin is disabled'."\n");
+if (!enrol_is_enabled('telr')) {
+    echo('enrol_telr plugin is disabled'."\n");
     exit(2);
 }
 
@@ -67,8 +67,8 @@ if (empty($options['verbose'])) {
     $trace = new text_progress_trace();
 }
 
-/** @var $plugin enrol_paypal_plugin */
-$plugin = enrol_get_plugin('paypal');
+/** @var $plugin enrol_telr_plugin */
+$plugin = enrol_get_plugin('telr');
 
 $result = $plugin->sync($trace);
 

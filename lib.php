@@ -31,14 +31,11 @@ defined('MOODLE_INTERNAL') || die();
  * @author  Eugene Venter - based on code by Martin Dougiamas and others
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class enrol_paypal_plugin extends enrol_plugin {
+class enrol_telr_plugin extends enrol_plugin {
 
     public function get_currencies() {
-        // See https://www.paypal.com/cgi-bin/webscr?cmd=p/sell/mc/mc_intro-outside,
-        // 3-character ISO-4217: https://cms.paypal.com/us/cgi-bin/?cmd=_render-content&content_ID=developer/e_howto_api_currency_codes
-        $codes = array(
-            'AUD', 'BRL', 'CAD', 'CHF', 'CZK', 'DKK', 'EUR', 'GBP', 'HKD', 'HUF', 'ILS', 'INR', 'JPY',
-            'MXN', 'MYR', 'NOK', 'NZD', 'PHP', 'PLN', 'RUB', 'SEK', 'SGD', 'THB', 'TRY', 'TWD', 'USD');
+        // Only need to support AED for this project.
+        $codes = array('AED', 'USD');
         $currencies = array();
         foreach ($codes as $c) {
             $currencies[$c] = new lang_string($c, 'core_currencies');
@@ -72,7 +69,7 @@ class enrol_paypal_plugin extends enrol_plugin {
             break;
         }
         if ($found) {
-            return array(new pix_icon('icon', get_string('pluginname', 'enrol_paypal'), 'enrol_paypal'));
+            return array(new pix_icon('icon', get_string('pluginname', 'enrol_telr'), 'enrol_telr'));
         }
         return array();
     }
@@ -83,12 +80,12 @@ class enrol_paypal_plugin extends enrol_plugin {
     }
 
     public function allow_unenrol(stdClass $instance) {
-        // users with unenrol cap may unenrol other users manually - requires enrol/paypal:unenrol
+        // users with unenrol cap may unenrol other users manually - requires enrol/telr:unenrol
         return true;
     }
 
     public function allow_manage(stdClass $instance) {
-        // users with manage cap may tweak period and status - requires enrol/paypal:manage
+        // users with manage cap may tweak period and status - requires enrol/telr:manage
         return true;
     }
 
@@ -104,7 +101,7 @@ class enrol_paypal_plugin extends enrol_plugin {
     public function can_add_instance($courseid) {
         $context = context_course::instance($courseid, MUST_EXIST);
 
-        if (!has_capability('moodle/course:enrolconfig', $context) or !has_capability('enrol/paypal:config', $context)) {
+        if (!has_capability('moodle/course:enrolconfig', $context) or !has_capability('enrol/telr:config', $context)) {
             return false;
         }
 
@@ -194,11 +191,11 @@ class enrol_paypal_plugin extends enrol_plugin {
         }
 
         if (abs($cost) < 0.01) { // no cost, other enrolment methods (instances) should be used
-            echo '<p>'.get_string('nocost', 'enrol_paypal').'</p>';
+            echo '<p>'.get_string('nocost', 'enrol_telr').'</p>';
         } else {
 
-            // Calculate localised and "." cost, make sure we send PayPal the same value,
-            // please note PayPal expects amount with 2 decimal places and "." separator.
+            // Calculate localised and "." cost, make sure we send Telr the same value,
+            // please note Telr expects amount with 2 decimal places and "." separator.
             $localisedcost = format_float($cost, 2, true);
             $cost = format_float($cost, 2, false);
 
@@ -209,7 +206,7 @@ class enrol_paypal_plugin extends enrol_plugin {
                 echo '<p><a href="'.$wwwroot.'/login/">'.get_string('loginsite').'</a></p>';
                 echo '</div>';
             } else {
-                //Sanitise some fields before building the PayPal form
+                //Sanitise some fields before building the Telr request
                 $coursefullname  = format_string($course->fullname, true, array('context'=>$context));
                 $courseshortname = $shortname;
                 $userfullname    = fullname($USER);
@@ -219,6 +216,7 @@ class enrol_paypal_plugin extends enrol_plugin {
                 $usercity        = $USER->city;
                 $instancename    = $this->get_instance_name($instance);
 
+                // TODO AJS: Implement the Telr request here
                 include($CFG->dirroot.'/enrol/paypal/enrol.html');
             }
 
@@ -312,35 +310,35 @@ class enrol_paypal_plugin extends enrol_plugin {
         $mform->setType('name', PARAM_TEXT);
 
         $options = $this->get_status_options();
-        $mform->addElement('select', 'status', get_string('status', 'enrol_paypal'), $options);
+        $mform->addElement('select', 'status', get_string('status', 'enrol_telr'), $options);
         $mform->setDefault('status', $this->get_config('status'));
 
-        $mform->addElement('text', 'cost', get_string('cost', 'enrol_paypal'), array('size' => 4));
+        $mform->addElement('text', 'cost', get_string('cost', 'enrol_telr'), array('size' => 4));
         $mform->setType('cost', PARAM_RAW);
         $mform->setDefault('cost', format_float($this->get_config('cost'), 2, true));
 
-        $paypalcurrencies = $this->get_currencies();
-        $mform->addElement('select', 'currency', get_string('currency', 'enrol_paypal'), $paypalcurrencies);
+        $telrcurrencies = $this->get_currencies();
+        $mform->addElement('select', 'currency', get_string('currency', 'enrol_telr'), $telrcurrencies);
         $mform->setDefault('currency', $this->get_config('currency'));
 
         $roles = $this->get_roleid_options($instance, $context);
-        $mform->addElement('select', 'roleid', get_string('assignrole', 'enrol_paypal'), $roles);
+        $mform->addElement('select', 'roleid', get_string('assignrole', 'enrol_telr'), $roles);
         $mform->setDefault('roleid', $this->get_config('roleid'));
 
         $options = array('optional' => true, 'defaultunit' => 86400);
-        $mform->addElement('duration', 'enrolperiod', get_string('enrolperiod', 'enrol_paypal'), $options);
+        $mform->addElement('duration', 'enrolperiod', get_string('enrolperiod', 'enrol_telr'), $options);
         $mform->setDefault('enrolperiod', $this->get_config('enrolperiod'));
-        $mform->addHelpButton('enrolperiod', 'enrolperiod', 'enrol_paypal');
+        $mform->addHelpButton('enrolperiod', 'enrolperiod', 'enrol_telr');
 
         $options = array('optional' => true);
-        $mform->addElement('date_time_selector', 'enrolstartdate', get_string('enrolstartdate', 'enrol_paypal'), $options);
+        $mform->addElement('date_time_selector', 'enrolstartdate', get_string('enrolstartdate', 'enrol_telr'), $options);
         $mform->setDefault('enrolstartdate', 0);
-        $mform->addHelpButton('enrolstartdate', 'enrolstartdate', 'enrol_paypal');
+        $mform->addHelpButton('enrolstartdate', 'enrolstartdate', 'enrol_telr');
 
         $options = array('optional' => true);
-        $mform->addElement('date_time_selector', 'enrolenddate', get_string('enrolenddate', 'enrol_paypal'), $options);
+        $mform->addElement('date_time_selector', 'enrolenddate', get_string('enrolenddate', 'enrol_telr'), $options);
         $mform->setDefault('enrolenddate', 0);
-        $mform->addHelpButton('enrolenddate', 'enrolenddate', 'enrol_paypal');
+        $mform->addHelpButton('enrolenddate', 'enrolenddate', 'enrol_telr');
 
         if (enrol_accessing_via_instance($instance)) {
             $warningtext = get_string('instanceeditselfwarningtext', 'core_enrol');
@@ -363,12 +361,12 @@ class enrol_paypal_plugin extends enrol_plugin {
         $errors = array();
 
         if (!empty($data['enrolenddate']) and $data['enrolenddate'] < $data['enrolstartdate']) {
-            $errors['enrolenddate'] = get_string('enrolenddaterror', 'enrol_paypal');
+            $errors['enrolenddate'] = get_string('enrolenddaterror', 'enrol_telr');
         }
 
         $cost = str_replace(get_string('decsep', 'langconfig'), '.', $data['cost']);
         if (!is_numeric($cost)) {
-            $errors['cost'] = get_string('costerror', 'enrol_paypal');
+            $errors['cost'] = get_string('costerror', 'enrol_telr');
         }
 
         $validstatus = array_keys($this->get_status_options());
@@ -408,7 +406,7 @@ class enrol_paypal_plugin extends enrol_plugin {
      */
     public function can_delete_instance($instance) {
         $context = context_course::instance($instance->courseid);
-        return has_capability('enrol/paypal:config', $context);
+        return has_capability('enrol/telr:config', $context);
     }
 
     /**
@@ -419,6 +417,6 @@ class enrol_paypal_plugin extends enrol_plugin {
      */
     public function can_hide_show_instance($instance) {
         $context = context_course::instance($instance->courseid);
-        return has_capability('enrol/paypal:config', $context);
+        return has_capability('enrol/telr:config', $context);
     }
 }
