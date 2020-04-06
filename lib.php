@@ -206,6 +206,17 @@ class enrol_telr_plugin extends enrol_plugin {
                 echo '<p><a href="'.$wwwroot.'/login/">'.get_string('loginsite').'</a></p>';
                 echo '</div>';
             } else {
+                //Sanitise some fields before building the Telr form
+                $coursefullname  = format_string($course->fullname, true, array('context'=>$context));
+                $courseshortname = $shortname;
+                $userfullname    = fullname($USER);
+                $userfirstname   = $USER->firstname;
+                $userlastname    = $USER->lastname;
+                $useraddress     = $USER->address;
+                $usercity        = $USER->city;
+                $usercountry     = $USER->country;
+                $instancename    = $this->get_instance_name($instance);
+
                 /// Open a connection back to Telr to get the URL
                 $c = new curl();
                 $telrdomain = 'secure.telr.com';
@@ -216,18 +227,25 @@ class enrol_telr_plugin extends enrol_plugin {
                 );
                 $location = "https://$telrdomain/gateway/order.json";
                 $telrreq = array(
-                    'ivp_method' => 'create',
-                    'ivp_store' => $this->get_config('storeid'),
-                    'ivp_authkey' => $this->get_config('authkey'),
-                    'ivp_test' => $this->get_config('testmode'),
-                    'ivp_amount' => $cost,
-                    'ivp_currency' => $instance->currency,
-                    'ivp_cart' => "{$USER->id}-{$course->id}-{$instance->id}",
-                    'ivp_desc' => courseshortname,
-                    'return_auth' => "$CFG->wwwroot/enrol/paypal/return.php?id=$course->id",
-                    'return_decl' => $CFG->wwwroot,
-                    'return_can' => $CFG->wwwroot,
-                    'ivp_framed' => 2
+                    'ivp_method'    => 'create',
+                    'ivp_store'     => $this->get_config('storeid'),
+                    'ivp_authkey'   => $this->get_config('authkey'),
+                    'ivp_test'      => $this->get_config('testmode'),
+                    'ivp_amount'    => $cost,
+                    'ivp_currency'  => $instance->currency,
+                    'ivp_cart'      => "{$USER->id}-{$course->id}-{$instance->id}",
+                    'ivp_desc'      => courseshortname,
+                    'return_auth'   => "$CFG->wwwroot/enrol/paypal/return.php?id=$course->id",
+                    'return_decl'   => $CFG->wwwroot,
+                    'return_can'    => $CFG->wwwroot,
+                    'ivp_framed'    => 2,
+
+                    'bill_fname'    => $USER->firstname,
+                    'bill_sname'    => $USER->lastname,
+                    'bill_addr1'    => $USER->address,
+                    'bill_city'     => $USER->city,
+                    'bill_country'  => $USER->country,
+                    'bill_email'    => $USER->email,
                 );
                 $result = $c->post($location, $telrreq, $options);
 
