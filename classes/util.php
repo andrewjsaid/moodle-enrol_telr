@@ -22,7 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace enrol_paypal;
+namespace enrol_telr;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -39,26 +39,20 @@ final class util {
      * Alerts site admin of potential problems.
      *
      * @param string   $subject email subject
-     * @param stdClass $data    PayPal IPN data
+     * @param stdClass $data    Telr IPN data
      */
-    public static function message_paypal_error_to_admin($subject, $data) {
+    public static function message_telr_error_to_admin($subject, $message) {
         $admin = get_admin();
         $site = get_site();
 
-        $message = "$site->fullname:  Transaction failed.\n\n$subject\n\n";
-
-        foreach ($data as $key => $value) {
-            $message .= "$key => $value\n";
-        }
-
         $eventdata = new \core\message\message();
-        $eventdata->courseid          = empty($data->courseid) ? SITEID : $data->courseid;
+        $eventdata->courseid          = SITEID;
         $eventdata->modulename        = 'moodle';
-        $eventdata->component         = 'enrol_paypal';
-        $eventdata->name              = 'paypal_enrolment';
+        $eventdata->component         = 'enrol_telr';
+        $eventdata->name              = 'telr_enrolment';
         $eventdata->userfrom          = $admin;
         $eventdata->userto            = $admin;
-        $eventdata->subject           = "PAYPAL ERROR: ".$subject;
+        $eventdata->subject           = "TELR ERROR: ".$subject;
         $eventdata->fullmessage       = $message;
         $eventdata->fullmessageformat = FORMAT_PLAIN;
         $eventdata->fullmessagehtml   = '';
@@ -75,7 +69,7 @@ final class util {
         return function($ex) {
             $info = get_exception_info($ex);
 
-            $logerrmsg = "enrol_paypal IPN exception handler: ".$info->message;
+            $logerrmsg = "enrol_telr exception handler: ".$info->message;
             if (debugging('', DEBUG_NORMAL)) {
                 $logerrmsg .= ' Debug: '.$info->debuginfo."\n".format_backtrace($info->backtrace, true);
             }

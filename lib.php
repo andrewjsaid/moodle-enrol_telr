@@ -206,18 +206,44 @@ class enrol_telr_plugin extends enrol_plugin {
                 echo '<p><a href="'.$wwwroot.'/login/">'.get_string('loginsite').'</a></p>';
                 echo '</div>';
             } else {
-                //Sanitise some fields before building the Telr request
-                $coursefullname  = format_string($course->fullname, true, array('context'=>$context));
-                $courseshortname = $shortname;
-                $userfullname    = fullname($USER);
-                $userfirstname   = $USER->firstname;
-                $userlastname    = $USER->lastname;
-                $useraddress     = $USER->address;
-                $usercity        = $USER->city;
-                $instancename    = $this->get_instance_name($instance);
+                /// Open a connection back to Telr to get the URL
+                $c = new curl();
+                $telrdomain = 'secure.telr.com';
+                $options = array(
+                    'httpheader' => array('application/x-www-form-urlencoded', "Host: $telrdomain"),
+                    'timeout' => 30,
+                    'CURLOPT_HTTP_VERSION' => CURL_HTTP_VERSION_1_1,
+                );
+                $location = "https://$telrdomain/gateway/order.json";
+                $telrreq = array(
+                    'ivp_method' => 'create',
+                    'ivp_store' => $this->get_config('storeid'),
+                    'ivp_authkey' => $this->get_config('authkey'),
+                    'ivp_test' => $this->get_config('testmode'),
+                    'ivp_amount' => $cost,
+                    'ivp_currency' => $instance->currency,
+                    'ivp_cart' => "{$USER->id}-{$course->id}-{$instance->id}",
+                    'ivp_desc' => courseshortname,
+                    'return_auth' => "$CFG->wwwroot/enrol/paypal/return.php?id=$course->id",
+                    'return_decl' => $CFG->wwwroot,
+                    'return_can' => $CFG->wwwroot,
+                    'ivp_framed' => 2
+                );
+                $result = $c->post($location, $telrreq, $options);
 
-                // TODO AJS: Implement the Telr request here
-                include($CFG->dirroot.'/enrol/paypal/enrol.html');
+                if ($c->get_errno()) {
+                    \enrol_telr\util::get_exception_handler("Could not connect to telr", $result);
+                }
+
+                $jsonResult = json_decode($result);
+                if(isset($jsonResult->error)) {
+                    \enrol_telr\util::get_exception_handler("Telr error message", $result);
+                }
+
+                $ref = $jsonResult->order->ref;
+                $telrorderurl = $jsonResult->order->url;
+
+                include($CFG->dirroot.'/enrol/telr/enrol.html');
             }
 
         }
