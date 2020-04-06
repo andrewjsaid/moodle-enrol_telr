@@ -45,7 +45,7 @@ if (!empty($SESSION->wantsurl)) {
 
 $fullname = format_string($course->fullname, true, array('context' => $context));
 
-if (is_enrolled($context, NULL, '', true)) { // TODO: use real paypal check
+if (is_enrolled($context, NULL, '', true)) { // TODO: use real paypal check (AJS: what does this todo mean?)
     redirect($destination, get_string('paymentthanks', '', $fullname));
 
 } else {   /// Somehow they aren't enrolled yet!  :-(

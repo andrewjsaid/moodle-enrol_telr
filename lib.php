@@ -235,8 +235,8 @@ class enrol_telr_plugin extends enrol_plugin {
                     'ivp_cart'      => "U{$USER->id}-C{$course->id}-I{$instance->id}",
                     'ivp_desc'      => $shortname,
                     'return_auth'   => "$CFG->wwwroot/enrol/telr/check.php?id=$pd->id",
-                    'return_decl'   => $CFG->wwwroot,
-                    'return_can'    => $CFG->wwwroot,
+                    'return_decl'   => "$CFG->wwwroot/enrol/telr/check.php?id=$pd->id",
+                    'return_can'    => "$CFG->wwwroot/enrol/telr/check.php?id=$pd->id",
                     'ivp_framed'    => 2,
 
                     'bill_fname'    => $USER->firstname,
@@ -250,13 +250,13 @@ class enrol_telr_plugin extends enrol_plugin {
 
                 if ($c->get_errno()) {
                     \enrol_telr\util::message_telr_error_to_admin("Could not connect to telr", $result);
-                    die() // TODO AJS better handling here?
+                    die;
                 }
 
                 $jsonResult = json_decode($result);
                 if(isset($jsonResult->error)) {
                     \enrol_telr\util::message_telr_error_to_admin("Telr error message", $result);
-                    die() // TODO AJS better handling here?
+                    die;
                 }
 
                 $ref = $jsonResult->order->ref;

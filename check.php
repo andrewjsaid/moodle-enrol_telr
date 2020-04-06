@@ -51,6 +51,17 @@ if($pd->status !== 1) {
     redirect(new moodle_url('/course/view.php', array('id'=>$pd->courseid)));
 }
 
+$user = $DB->get_record("user", array("id" => $pd->userid), "*", MUST_EXIST);
+$course = $DB->get_record("course", array("id" => $pd->courseid), "*", MUST_EXIST);
+$context = context_course::instance($course->id, MUST_EXIST);
+
+$PAGE->set_context($context);
+
+$plugin_instance = $DB->get_record("enrol", array("id" => $pd->instanceid, "enrol" => "telr", "status" => 0), "*", MUST_EXIST);
+$plugin = enrol_get_plugin('telr');
+
+
+
 // Now we check the transaction from Telr's side
 $c = new curl();
 $telrdomain = 'secure.telr.com';
@@ -62,8 +73,8 @@ $options = array(
 $location = "https://$telrdomain/gateway/order.json";
 $telrreq = array(
     'ivp_method'    => 'check',
-    'ivp_store'     => $this->get_config('storeid'), // TODO AJS
-    'ivp_authkey'   => $this->get_config('authkey'), // TODO AJS
+    'ivp_store'     => $plugin->get_config('storeid'),
+    'ivp_authkey'   => $plugin->get_config('authkey'),
     'order_ref'     => $pd->orderref
     
 );
@@ -86,14 +97,6 @@ $pd->lastorderstatus = $result->order->status->text;
 $DB->update_record('enrol_telr_pending', $pd);
 
 
-$user = $DB->get_record("user", array("id" => $pd->userid), "*", MUST_EXIST);
-$course = $DB->get_record("course", array("id" => $pd->courseid), "*", MUST_EXIST);
-$context = context_course::instance($course->id, MUST_EXIST);
-
-$PAGE->set_context($context);
-
-$plugin_instance = $DB->get_record("enrol", array("id" => $pd->instanceid, "enrol" => "telr", "status" => 0), "*", MUST_EXIST);
-$plugin = enrol_get_plugin('telr');
 
 // todo ajs handle the below
 /*
@@ -161,22 +164,28 @@ if($pd->lastorderstatuscode == 3) {
     $d->description = $result->order->description;
     $d->statuscode = $result->order->status->code;
     $d->statustext = $result->order->status->text;
-    $d->transactionref = $result->transaction->ref;
-    $d->transactiontype = $result->transaction->type;
-    $d->transactionstatus = $result->transaction->status;
-    $d->transactioncode = $result->transaction->code;
-    $d->transactionmessage = $result->transaction->message;
+
+    if(!empty($result->transaction)) {
+        $d->transactionref = $result->transaction->ref;
+        $d->transactiontype = $result->transaction->type;
+        $d->transactionstatus = $result->transaction->status;
+        $d->transactioncode = $result->transaction->code;
+        $d->transactionmessage = $result->transaction->message;
+    )
     $d->customeremail = $result->customer->email;
     $d->customertitle = $result->customer->name->title;
     $d->customerfirstname = $result->customer->name->forenames;
     $d->customersurname = $result->customer->name->surname;
-    $d->customeraddressline1 = $result->address->line1;
-    $d->customeraddressline2 = $result->address->line2;
-    $d->customeraddressline3 = $result->address->line3;
-    $d->customeraddresscity = $result->address->city;
-    $d->customeraddressstate = $result->address->state;
-    $d->customeraddresscountry = $result->address->country;
-    $d->customeraddressareacode = $result->address->areacode;
+    
+    if(!empty($result->address)) {
+        $d->addressline1 = $result->address->line1;
+        $d->addressline2 = $result->address->line2;
+        $d->addressline3 = $result->address->line3;
+        $d->addresscity = $result->address->city;
+        $d->addressstate = $result->address->state;
+        $d->addresscountry = $result->address->country;
+        $d->addressareacode = $result->address->areacode;
+    }
     
     // If currency is incorrectly set then someone maybe trying to cheat the system
     if ($d->currency != $plugin_instance->currency) {
@@ -199,10 +208,6 @@ if($pd->lastorderstatuscode == 3) {
         \enrol_telr\util::message_telr_error_to_admin("Amount paid is not enough ($d->amount < $cost))", $d);
         die;
     }
-
-////////////////////////////////////////////////////////////////////
-/////////////////////// TODO AJS BELOW  ////////////////////////////
-////////////////////////////////////////////////////////////////////
 
     // ALL CLEAR !
 
@@ -295,3 +300,5 @@ if($pd->lastorderstatuscode == 3) {
         }
     }
 }
+
+redirect(new moodle_url('/enrol/telr/return.php', array('id'=>$course->id)));
