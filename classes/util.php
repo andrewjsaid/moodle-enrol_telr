@@ -12,13 +12,6 @@ namespace enrol_telr;
 
 defined('MOODLE_INTERNAL') || die();
 
-/**
- * PayPal enrolment plugin utility class.
- *
- * @package   enrol_paypal
- * @copyright 2016 Cameron Ball <cameron@cameron1729.xyz>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 final class util {
 
     /**

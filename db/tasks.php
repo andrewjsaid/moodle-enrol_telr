@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Task definition for enrol_paypal.
+ * Task definition for enrol_telr.
  * @package    enrol_telr
  * @copyright  2020 Andrew J Said
  * @author     Andrew J Said - based on code by Farhan Karmali

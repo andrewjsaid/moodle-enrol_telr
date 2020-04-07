@@ -1,6 +1,6 @@
 <?php
 /**
- * Paypal enrolments plugin settings and presets.
+ * Telr enrolments plugin settings and presets.
  *
  * @package    enrol_telr
  * @copyright  2020 Andrew J Said

@@ -12,14 +12,6 @@ namespace enrol_telr\task;
 
 defined('MOODLE_INTERNAL') || die();
 
-/**
- * Process expirations task.
- *
- * @package   enrol_paypal
- * @author    Farhan Karmali <farhan6318@gmail.com>
- * @copyright Farhan Karmali
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 class process_expirations extends \core\task\scheduled_task {
 
     /**

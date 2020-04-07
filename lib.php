@@ -6,17 +6,12 @@
  *
  * @package    enrol_telr
  * @copyright  2020 Andrew J Said
- * @author     Andrew J Said - based on code by Eugene Venter
+ * @author     Andrew J Said - based on code by Eugene Venter, Martin Dougiamas and others
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-/**
- * Paypal enrolment plugin implementation.
- * @author  Eugene Venter - based on code by Martin Dougiamas and others
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 class enrol_telr_plugin extends enrol_plugin {
 
     public function get_currencies() {

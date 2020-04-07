@@ -1,6 +1,6 @@
 <?php
 /**
- * Defines message providers (types of message sent) for the PayPal enrolment plugin.
+ * Defines message providers (types of message sent) for the Telr enrolment plugin.
  *
  * @package    enrol_telr
  * @copyright  2020 Andrew J Said

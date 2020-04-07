@@ -19,12 +19,6 @@ use core_privacy\local\request\contextlist;
 use core_privacy\local\request\userlist;
 use core_privacy\local\request\writer;
 
-/**
- * Privacy Subsystem implementation for enrol_paypal.
- *
- * @copyright  2018 Shamim Rezaie <shamim@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 class provider implements
         // Transactions store user data.
         \core_privacy\local\metadata\provider,
@@ -43,43 +37,72 @@ class provider implements
      */
     public static function get_metadata(collection $collection) : collection {
         $collection->add_external_location_link(
-            'paypal.com',
+            'telr.com',
             [
-                'os0'        => 'privacy:metadata:enrol_paypal:paypal_com:os0',
-                'custom'     => 'privacy:metadata:enrol_paypal:paypal_com:custom',
-                'first_name' => 'privacy:metadata:enrol_paypal:paypal_com:first_name',
-                'last_name'  => 'privacy:metadata:enrol_paypal:paypal_com:last_name',
-                'address'    => 'privacy:metadata:enrol_paypal:paypal_com:address',
-                'city'       => 'privacy:metadata:enrol_paypal:paypal_com:city',
-                'email'      => 'privacy:metadata:enrol_paypal:paypal_com:email',
-                'country'    => 'privacy:metadata:enrol_paypal:paypal_com:country',
+                'cart'       => 'privacy:metadata:enrol_telr:telr_com:cart',
+                'first_name' => 'privacy:metadata:enrol_telr:telr_com:first_name',
+                'last_name'  => 'privacy:metadata:enrol_telr:telr_com:last_name',
+                'address'    => 'privacy:metadata:enrol_telr:telr_com:address',
+                'city'       => 'privacy:metadata:enrol_telr:telr_com:city',
+                'email'      => 'privacy:metadata:enrol_telr:telr_com:email',
+                'country'    => 'privacy:metadata:enrol_telr:telr_com:country',
             ],
-            'privacy:metadata:enrol_paypal:paypal_com'
+            'privacy:metadata:enrol_telr:telr_com'
         );
 
-        // The enrol_paypal has a DB table that contains user data.
+        // The enrol_telr has 2 DB tables that contains user data.
         $collection->add_database_table(
-                'enrol_paypal',
+                'enrol_telr',
                 [
-                    'business'            => 'privacy:metadata:enrol_paypal:enrol_paypal:business',
-                    'receiver_email'      => 'privacy:metadata:enrol_paypal:enrol_paypal:receiver_email',
-                    'receiver_id'         => 'privacy:metadata:enrol_paypal:enrol_paypal:receiver_id',
-                    'item_name'           => 'privacy:metadata:enrol_paypal:enrol_paypal:item_name',
-                    'courseid'            => 'privacy:metadata:enrol_paypal:enrol_paypal:courseid',
-                    'userid'              => 'privacy:metadata:enrol_paypal:enrol_paypal:userid',
-                    'instanceid'          => 'privacy:metadata:enrol_paypal:enrol_paypal:instanceid',
-                    'memo'                => 'privacy:metadata:enrol_paypal:enrol_paypal:memo',
-                    'tax'                 => 'privacy:metadata:enrol_paypal:enrol_paypal:tax',
-                    'option_selection1_x' => 'privacy:metadata:enrol_paypal:enrol_paypal:option_selection1_x',
-                    'payment_status'      => 'privacy:metadata:enrol_paypal:enrol_paypal:payment_status',
-                    'pending_reason'      => 'privacy:metadata:enrol_paypal:enrol_paypal:pending_reason',
-                    'reason_code'         => 'privacy:metadata:enrol_paypal:enrol_paypal:reason_code',
-                    'txn_id'              => 'privacy:metadata:enrol_paypal:enrol_paypal:txn_id',
-                    'parent_txn_id'       => 'privacy:metadata:enrol_paypal:enrol_paypal:parent_txn_id',
-                    'payment_type'        => 'privacy:metadata:enrol_paypal:enrol_paypal:payment_type',
-                    'timeupdated'         => 'privacy:metadata:enrol_paypal:enrol_paypal:timeupdated'
+                    'storeid'             => 'privacy:metadata:enrol_telr:enrol_telr:storeid',
+                    'courseid'            => 'privacy:metadata:enrol_telr:enrol_telr:courseid',
+                    'userid'              => 'privacy:metadata:enrol_telr:enrol_telr:userid',
+                    'instanceid'          => 'privacy:metadata:enrol_telr:enrol_telr:instanceid',
+                    'timeupdated'         => 'privacy:metadata:enrol_telr:enrol_telr:timeupdated',
+                    
+                    'orderref'            => 'privacy:metadata:enrol_telr:enrol_telr:orderref',
+                    'amount'              => 'privacy:metadata:enrol_telr:enrol_telr:amount',
+                    'currency'            => 'privacy:metadata:enrol_telr:enrol_telr:currency',
+                    'description'         => 'privacy:metadata:enrol_telr:enrol_telr:description',
+                    'statuscode'          => 'privacy:metadata:enrol_telr:enrol_telr:statuscode',
+                    'statustext'          => 'privacy:metadata:enrol_telr:enrol_telr:statustext',
+                    
+                    'transactionref'      => 'privacy:metadata:enrol_telr:enrol_telr:transactionref',
+                    'transactiontype'     => 'privacy:metadata:enrol_telr:enrol_telr:transactiontype',
+                    'transactionstatus'   => 'privacy:metadata:enrol_telr:enrol_telr:transactionstatus',
+                    'transactioncode'     => 'privacy:metadata:enrol_telr:enrol_telr:transactioncode',
+                    'transactionmessage'  => 'privacy:metadata:enrol_telr:enrol_telr:transactionmessage',
+
+                    'customeremail'       => 'privacy:metadata:enrol_telr:enrol_telr:customeremail',
+                    'customertitle'       => 'privacy:metadata:enrol_telr:enrol_telr:customertitle',
+                    'customerfirstname'   => 'privacy:metadata:enrol_telr:enrol_telr:customerfirstname',
+                    'customersurname'     => 'privacy:metadata:enrol_telr:enrol_telr:customersurname',
+                    'addressline1'        => 'privacy:metadata:enrol_telr:enrol_telr:addressline1',
+                    'addressline2'        => 'privacy:metadata:enrol_telr:enrol_telr:addressline2',
+                    'addressline3'        => 'privacy:metadata:enrol_telr:enrol_telr:addressline3',
+                    'addresscity'         => 'privacy:metadata:enrol_telr:enrol_telr:addresscity',
+                    'addressstate'        => 'privacy:metadata:enrol_telr:enrol_telr:addressstate',
+                    'addresscountry'      => 'privacy:metadata:enrol_telr:enrol_telr:addresscountry',
+                    'addressareacode'     => 'privacy:metadata:enrol_telr:enrol_telr:addressareacode',
                 ],
-                'privacy:metadata:enrol_paypal:enrol_paypal'
+                'privacy:metadata:enrol_telr:enrol_telr'
+        );
+        
+        $collection->add_database_table(
+            'enrol_telr_pending',
+            [
+                'storeid'             => 'privacy:metadata:enrol_telr:enrol_telr:storeid',
+                'status'              => 'privacy:metadata:enrol_telr:enrol_telr:status',
+                'timecreated'         => 'privacy:metadata:enrol_telr:enrol_telr:timecreated',
+                'courseid'            => 'privacy:metadata:enrol_telr:enrol_telr:courseid',
+                'userid'              => 'privacy:metadata:enrol_telr:enrol_telr:userid',
+                'instanceid'          => 'privacy:metadata:enrol_telr:enrol_telr:instanceid',
+                'orderref'            => 'privacy:metadata:enrol_telr:enrol_telr:orderref',
+                'lasttimechecked'     => 'privacy:metadata:enrol_telr:enrol_telr:lasttimechecked',
+                'lastorderstatuscode' => 'privacy:metadata:enrol_telr:enrol_telr:lastorderstatuscode',
+                'lastorderstatus'     => 'privacy:metadata:enrol_telr:enrol_telr:lastorderstatus',
+            ],
+            'privacy:metadata:enrol_telr:enrol_telr_pending'
         );
 
         return $collection;
