@@ -8,7 +8,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace enrol_paypal\privacy;
+namespace enrol_telr\privacy;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -23,7 +23,7 @@ class provider implements
         // Transactions store user data.
         \core_privacy\local\metadata\provider,
 
-        // The paypal enrolment plugin contains user's transactions.
+        // The telr enrolment plugin contains user's transactions.
         \core_privacy\local\request\plugin\provider,
 
         // This plugin is capable of determining which users have data within it.
@@ -117,14 +117,22 @@ class provider implements
     public static function get_contexts_for_userid(int $userid) : contextlist {
         $contextlist = new contextlist();
 
-        // Values of ep.receiver_email and ep.business are already normalised to lowercase characters by PayPal,
-        // therefore there is no need to use LOWER() on them in the following query.
         $sql = "SELECT ctx.id
-                  FROM {enrol_paypal} ep
+                  FROM {enrol_telr} ep
                   JOIN {enrol} e ON ep.instanceid = e.id
                   JOIN {context} ctx ON e.courseid = ctx.instanceid AND ctx.contextlevel = :contextcourse
-                  JOIN {user} u ON u.id = ep.userid OR LOWER(u.email) = ep.receiver_email OR LOWER(u.email) = ep.business
-                 WHERE u.id = :userid";
+                  JOIN {user} u ON u.id = ep.userid OR LOWER(u.email) = LOWER(ep.customeremail)
+                 WHERE u.id = :userid
+
+                UNION 
+
+                SELECT ctx.id
+                  FROM {enrol_telr_pending} ep
+                  JOIN {enrol} e ON ep.instanceid = e.id
+                  JOIN {context} ctx ON e.courseid = ctx.instanceid AND ctx.contextlevel = :contextcourse
+                  JOIN {user} u ON u.id = ep.userid
+                 WHERE u.id = :userid
+                ";
         $params = [
             'contextcourse' => CONTEXT_COURSE,
             'userid'        => $userid,
@@ -147,13 +155,20 @@ class provider implements
             return;
         }
 
-        // Values of ep.receiver_email and ep.business are already normalised to lowercase characters by PayPal,
-        // therefore there is no need to use LOWER() on them in the following query.
         $sql = "SELECT u.id
-                  FROM {enrol_paypal} ep
+                  FROM {enrol_telr} ep
                   JOIN {enrol} e ON ep.instanceid = e.id
-                  JOIN {user} u ON ep.userid = u.id OR LOWER(u.email) = ep.receiver_email OR LOWER(u.email) = ep.business
-                 WHERE e.courseid = :courseid";
+                  JOIN {user} u ON ep.userid = u.id OR LOWER(u.email) = LOWER(ep.customeremail)
+                 WHERE e.courseid = :courseid
+
+                 UNION
+
+                 SELECT u.id
+                  FROM {enrol_telr_pending} ep
+                  JOIN {enrol} e ON ep.instanceid = e.id
+                  JOIN {user} u ON ep.userid = u.id
+                 WHERE e.courseid = :courseid
+                 ";
         $params = ['courseid' => $context->instanceid];
 
         $userlist->add_from_sql('id', $sql, $params);
@@ -175,13 +190,11 @@ class provider implements
 
         list($contextsql, $contextparams) = $DB->get_in_or_equal($contextlist->get_contextids(), SQL_PARAMS_NAMED);
 
-        // Values of ep.receiver_email and ep.business are already normalised to lowercase characters by PayPal,
-        // therefore there is no need to use LOWER() on them in the following query.
         $sql = "SELECT ep.*
-                  FROM {enrol_paypal} ep
+                  FROM {enrol_telr} ep
                   JOIN {enrol} e ON ep.instanceid = e.id
                   JOIN {context} ctx ON e.courseid = ctx.instanceid AND ctx.contextlevel = :contextcourse
-                  JOIN {user} u ON u.id = ep.userid OR LOWER(u.email) = ep.receiver_email OR LOWER(u.email) = ep.business
+                  JOIN {user} u ON u.id = ep.userid OR LOWER(u.email) = LOWER(ep.customeremail)
                  WHERE ctx.id {$contextsql} AND u.id = :userid
               ORDER BY e.courseid";
 
@@ -193,17 +206,17 @@ class provider implements
         $params += $contextparams;
 
         // Reference to the course seen in the last iteration of the loop. By comparing this with the current record, and
-        // because we know the results are ordered, we know when we've moved to the PayPal transactions for a new course
+        // because we know the results are ordered, we know when we've moved to the Telr transactions for a new course
         // and therefore when we can export the complete data for the last course.
         $lastcourseid = null;
 
-        $strtransactions = get_string('transactions', 'enrol_paypal');
+        $strtransactions = get_string('transactions', 'enrol_telr');
         $transactions = [];
-        $paypalrecords = $DB->get_recordset_sql($sql, $params);
-        foreach ($paypalrecords as $paypalrecord) {
-            if ($lastcourseid != $paypalrecord->courseid) {
+        $telrrecords = $DB->get_recordset_sql($sql, $params);
+        foreach ($telrrecords as $telrrecord) {
+            if ($lastcourseid != $telrrecord->courseid) {
                 if (!empty($transactions)) {
-                    $coursecontext = \context_course::instance($paypalrecord->courseid);
+                    $coursecontext = \context_course::instance($telrrecord->courseid);
                     writer::with_context($coursecontext)->export_data(
                             [$strtransactions],
                             (object) ['transactions' => $transactions]
@@ -213,42 +226,47 @@ class provider implements
             }
 
             $transaction = (object) [
-                'receiver_id'         => $paypalrecord->receiver_id,
-                'item_name'           => $paypalrecord->item_name,
-                'userid'              => $paypalrecord->userid,
-                'memo'                => $paypalrecord->memo,
-                'tax'                 => $paypalrecord->tax,
-                'option_name1'        => $paypalrecord->option_name1,
-                'option_selection1_x' => $paypalrecord->option_selection1_x,
-                'option_name2'        => $paypalrecord->option_name2,
-                'option_selection2_x' => $paypalrecord->option_selection2_x,
-                'payment_status'      => $paypalrecord->payment_status,
-                'pending_reason'      => $paypalrecord->pending_reason,
-                'reason_code'         => $paypalrecord->reason_code,
-                'txn_id'              => $paypalrecord->txn_id,
-                'parent_txn_id'       => $paypalrecord->parent_txn_id,
-                'payment_type'        => $paypalrecord->payment_type,
-                'timeupdated'         => \core_privacy\local\request\transform::datetime($paypalrecord->timeupdated),
+                'storeid'              => $telrrecord->storeid,
+                'courseid'             => $telrrecord->courseid,
+                'userid'               => $telrrecord->userid,
+                'instanceid'           => $telrrecord->instanceid,
+                'orderref'             => $telrrecord->orderref,
+                'amount'               => $telrrecord->amount,
+                'currency'             => $telrrecord->currency,
+                'description'          => $telrrecord->description,
+                'statuscode'           => $telrrecord->statuscode,
+                'statustext'           => $telrrecord->statustext,
+                'transactionref'       => $telrrecord->transactionref,
+                'transactiontype'      => $telrrecord->transactiontype,
+                'transactionstatus'    => $telrrecord->transactionstatus,
+                'transactioncode'      => $telrrecord->transactioncode,
+                'transactionmessage'   => $telrrecord->transactionmessage,
+                'customeremail'        => $telrrecord->customeremail,
+                'customertitle'        => $telrrecord->customertitle,
+                'customerfirstname'    => $telrrecord->customerfirstname,
+                'customersurname'      => $telrrecord->customersurname,
+                'addressline1'         => $telrrecord->addressline1,
+                'addressline2'         => $telrrecord->addressline2,
+                'addressline3'         => $telrrecord->addressline3,
+                'addresscity'          => $telrrecord->addresscity,
+                'addressstate'         => $telrrecord->addressstate,
+                'addresscountry'       => $telrrecord->addresscountry,
+                'addressareacode'      => $telrrecord->addressareacode,
+                'timeupdated'          => \core_privacy\local\request\transform::datetime($telrrecord->timeupdated),
             ];
-            if ($paypalrecord->userid == $user->id) {
-                $transaction->userid = $paypalrecord->userid;
-            }
-            if ($paypalrecord->business == \core_text::strtolower($user->email)) {
-                $transaction->business = $paypalrecord->business;
-            }
-            if ($paypalrecord->receiver_email == \core_text::strtolower($user->email)) {
-                $transaction->receiver_email = $paypalrecord->receiver_email;
+            if ($telrrecord->userid == $user->id) {
+                $transaction->userid = $telrrecord->userid;
             }
 
-            $transactions[] = $paypalrecord;
+            $transactions[] = $telrrecord;
 
-            $lastcourseid = $paypalrecord->courseid;
+            $lastcourseid = $telrrecord->courseid;
         }
-        $paypalrecords->close();
+        $telrrecords->close();
 
         // The data for the last activity won't have been written yet, so make sure to write it now!
         if (!empty($transactions)) {
-            $coursecontext = \context_course::instance($paypalrecord->courseid);
+            $coursecontext = \context_course::instance($telrrecord->courseid);
             writer::with_context($coursecontext)->export_data(
                     [$strtransactions],
                     (object) ['transactions' => $transactions]
@@ -268,7 +286,7 @@ class provider implements
             return;
         }
 
-        $DB->delete_records('enrol_paypal', array('courseid' => $context->instanceid));
+        $DB->delete_records('enrol_telr', array('courseid' => $context->instanceid));
     }
 
     /**
@@ -297,18 +315,7 @@ class provider implements
 
         $select = "userid = :userid AND courseid $insql";
         $params = $inparams + ['userid' => $user->id];
-        $DB->delete_records_select('enrol_paypal', $select, $params);
-
-        // We do not want to delete the payment record when the user is just the receiver of payment.
-        // In that case, we just delete the receiver's info from the transaction record.
-
-        $select = "business = :business AND courseid $insql";
-        $params = $inparams + ['business' => \core_text::strtolower($user->email)];
-        $DB->set_field_select('enrol_paypal', 'business', '', $select, $params);
-
-        $select = "receiver_email = :receiver_email AND courseid $insql";
-        $params = $inparams + ['receiver_email' => \core_text::strtolower($user->email)];
-        $DB->set_field_select('enrol_paypal', 'receiver_email', '', $select, $params);
+        $DB->delete_records_select('enrol_telr', $select, $params);
     }
 
     /**
@@ -332,15 +339,6 @@ class provider implements
         $params = ['courseid' => $context->instanceid] + $userparams;
 
         $select = "courseid = :courseid AND userid $usersql";
-        $DB->delete_records_select('enrol_paypal', $select, $params);
-
-        // We do not want to delete the payment record when the user is just the receiver of payment.
-        // In that case, we just delete the receiver's info from the transaction record.
-
-        $select = "courseid = :courseid AND business IN (SELECT LOWER(email) FROM {user} WHERE id $usersql)";
-        $DB->set_field_select('enrol_paypal', 'business', '', $select, $params);
-
-        $select = "courseid = :courseid AND receiver_email IN (SELECT LOWER(email) FROM {user} WHERE id $usersql)";
-        $DB->set_field_select('enrol_paypal', 'receiver_email', '', $select, $params);
+        $DB->delete_records_select('enrol_telr', $select, $params);
     }
 }
