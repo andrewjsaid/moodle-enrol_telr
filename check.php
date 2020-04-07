@@ -171,7 +171,8 @@ if($pd->lastorderstatuscode == 3) {
         $d->transactionstatus = $result->transaction->status;
         $d->transactioncode = $result->transaction->code;
         $d->transactionmessage = $result->transaction->message;
-    )
+    }
+    
     $d->customeremail = $result->customer->email;
     $d->customertitle = $result->customer->name->title;
     $d->customerfirstname = $result->customer->name->forenames;

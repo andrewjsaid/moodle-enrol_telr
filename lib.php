@@ -208,13 +208,13 @@ class enrol_telr_plugin extends enrol_plugin {
             } else {
                 
                 $pd = new stdClass();
-                $pd.storeid = $this->get_config('storeid');
-                $pd.status = 0;
-                $pd.timecreated = time();
-                $pd.courseid = $course->id;
-                $pd.userid = $USER->id;
-                $pd.instanceid = instance->id;
-                $pd.id = $DB->insert_record("enrol_telr_pending", $pd);
+                $pd->storeid = $this->get_config('storeid');
+                $pd->status = 0;
+                $pd->timecreated = time();
+                $pd->courseid = $course->id;
+                $pd->userid = $USER->id;
+                $pd->instanceid = $instance->id;
+                $pd->id = $DB->insert_record("enrol_telr_pending", $pd);
 
                 /// Open a connection to Telr to get the URL
                 $c = new curl();
@@ -262,8 +262,8 @@ class enrol_telr_plugin extends enrol_plugin {
                 $ref = $jsonResult->order->ref;
                 $telrorderurl = $jsonResult->order->url;
 
-                $pd.orderref = $ref;
-                $pd.status = 1;
+                $pd->orderref = $ref;
+                $pd->status = 1;
                 $DB->update_record('enrol_telr_pending', $pd);
 
                 include($CFG->dirroot.'/enrol/telr/enrol.html');
