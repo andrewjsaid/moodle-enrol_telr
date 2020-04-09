@@ -28,7 +28,7 @@ if (!enrol_is_enabled('telr')) {
 
 $id = required_param('id', PARAM_INT);
 $pd = $DB->get_record("enrol_telr_pending", array('id'=>$id), "*", MUST_EXIST);
-if($pd->status !== 1) {
+if($pd->status != 1) {
     redirect(new moodle_url('/course/view.php', array('id'=>$pd->courseid)));
 }
 
@@ -73,8 +73,6 @@ if(isset($jsonResult->error)) {
 $pd->lasttimechecked = time();
 $pd->lastorderstatuscode = $result->order->status->code;
 $pd->lastorderstatus = $result->order->status->text;
-// todo ajs set status if a "bad" status, and redirect appropriately.
-// todo ajs refresh the page in 10 seconds if still pending.
 $DB->update_record('enrol_telr_pending', $pd);
 
 
