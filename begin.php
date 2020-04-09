@@ -4,7 +4,7 @@
  *
  * @package    enrol_telr
  * @copyright  2020 Andrew J Said
- * @author     Andrew J Said - based on code by Eugene Venter and others
+ * @author     Andrew J Said
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -42,6 +42,15 @@ $pd->userid = $user->id;
 $pd->instanceid = $instance->id;
 $pd->id = $DB->insert_record("enrol_telr_pending", $pd);
 
+
+
+if ( (float) $instance->cost <= 0 ) {
+    $cost = (float) $plugin->get_config('cost');
+} else {
+    $cost = (float) $instance->cost;
+}
+$cost = format_float($cost, 2, false);
+
 /// Open a connection to Telr to get the URL
 $c = new curl();
 $telrdomain = 'secure.telr.com';
@@ -53,24 +62,24 @@ $options = array(
 $location = "https://$telrdomain/gateway/order.json";
 $telrreq = array(
     'ivp_method'    => 'create',
-    'ivp_store'     => $this->get_config('storeid'),
-    'ivp_authkey'   => $this->get_config('authkey'),
-    'ivp_test'      => $this->get_config('testmode'),
+    'ivp_store'     => $plugin->get_config('storeid'),
+    'ivp_authkey'   => $plugin->get_config('authkey'),
+    'ivp_test'      => $plugin->get_config('testmode'),
     'ivp_amount'    => $cost,
     'ivp_currency'  => $instance->currency,
     'ivp_cart'      => $pd->id,
-    'ivp_desc'      => $shortname,
+    'ivp_desc'      => $course->shortname,
     'return_auth'   => "$CFG->wwwroot/enrol/telr/check.php?id=$pd->id",
     'return_decl'   => "$CFG->wwwroot/enrol/telr/check.php?id=$pd->id",
     'return_can'    => "$CFG->wwwroot/enrol/telr/check.php?id=$pd->id",
     'ivp_framed'    => 0,
 
-    'bill_fname'    => $USER->firstname,
-    'bill_sname'    => $USER->lastname,
-    'bill_addr1'    => $USER->address,
-    'bill_city'     => $USER->city,
-    'bill_country'  => $USER->country,
-    'bill_email'    => $USER->email,
+    'bill_fname'    => $user->firstname,
+    'bill_sname'    => $user->lastname,
+    'bill_addr1'    => $user->address,
+    'bill_city'     => $user->city,
+    'bill_country'  => $user->country,
+    'bill_email'    => $user->email,
 );
 $result = $c->post($location, $telrreq, $options);
 

@@ -8,9 +8,9 @@
     <p class="telr-paymentinstant"><?php print_string("paymentinstant") ?></p>
     <form action="/enrol/telr/begin.php" method="post">
     
-        <input type="hidden" name="userid" value="<?php $userid ?>" />
-        <input type="hidden" name="courseid" value="<?php $courseid ?>" />
-        <input type="hidden" name="instanceid" value="<?php $instanceid ?>" />
+        <input type="hidden" name="userid" value="<?php p($userid) ?>" />
+        <input type="hidden" name="courseid" value="<?php p($courseid) ?>" />
+        <input type="hidden" name="instanceid" value="<?php p($instanceid) ?>" />
         <input type="submit" value="<?php print_string("sendpaymentbutton", "enrol_telr") ?>" />
     
     </form>

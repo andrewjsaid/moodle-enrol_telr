@@ -65,14 +65,14 @@ if ($c->get_errno()) {
     throw new moodle_exception('errtelr', 'enrol_telr', '', null, $result);
 }
 
-$jsonResult = json_decode($result);
-if(isset($jsonResult->error)) {
+$jResult = json_decode($result);
+if(isset($jResult->error)) {
     throw new moodle_exception('errtelr', 'enrol_telr', '', null, $result);
 }
 
 $pd->lasttimechecked = time();
-$pd->lastorderstatuscode = $result->order->status->code;
-$pd->lastorderstatus = $result->order->status->text;
+$pd->lastorderstatuscode = $jResult->order->status->code;
+$pd->lastorderstatus = $jResult->order->status->text;
 $DB->update_record('enrol_telr_pending', $pd);
 
 
@@ -130,35 +130,35 @@ $d->instanceid = $pd->instanceid;
 $d->timeupdated = time();
 
 // Record all details of the order
-$d->orderref = $result->order->ref;
-$d->test = $result->order->test;
-$d->amount = $result->order->amount;
-$d->currency = $result->order->currency;
-$d->description = $result->order->description;
-$d->statuscode = $result->order->status->code;
-$d->statustext = $result->order->status->text;
+$d->orderref = $jResult->order->ref;
+$d->test = $jResult->order->test;
+$d->amount = $jResult->order->amount;
+$d->currency = $jResult->order->currency;
+$d->description = $jResult->order->description;
+$d->statuscode = $jResult->order->status->code;
+$d->statustext = $jResult->order->status->text;
 
-if(!empty($result->transaction)) {
-    $d->transactionref = $result->transaction->ref;
-    $d->transactiontype = $result->transaction->type;
-    $d->transactionstatus = $result->transaction->status;
-    $d->transactioncode = $result->transaction->code;
-    $d->transactionmessage = $result->transaction->message;
+if(!empty($jResult->transaction)) {
+    $d->transactionref = $jResult->transaction->ref;
+    $d->transactiontype = $jResult->transaction->type;
+    $d->transactionstatus = $jResult->transaction->status;
+    $d->transactioncode = $jResult->transaction->code;
+    $d->transactionmessage = $jResult->transaction->message;
 }
 
-$d->customeremail = $result->customer->email;
-$d->customertitle = $result->customer->name->title;
-$d->customerfirstname = $result->customer->name->forenames;
-$d->customersurname = $result->customer->name->surname;
+$d->customeremail = $jResult->customer->email;
+$d->customertitle = $jResult->customer->name->title;
+$d->customerfirstname = $jResult->customer->name->forenames;
+$d->customersurname = $jResult->customer->name->surname;
 
-if(!empty($result->address)) {
-    $d->addressline1 = $result->address->line1;
-    $d->addressline2 = $result->address->line2;
-    $d->addressline3 = $result->address->line3;
-    $d->addresscity = $result->address->city;
-    $d->addressstate = $result->address->state;
-    $d->addresscountry = $result->address->country;
-    $d->addressareacode = $result->address->areacode;
+if(!empty($jResult->address)) {
+    $d->addressline1 = $jResult->address->line1;
+    $d->addressline2 = $jResult->address->line2;
+    $d->addressline3 = $jResult->address->line3;
+    $d->addresscity = $jResult->address->city;
+    $d->addressstate = $jResult->address->state;
+    $d->addresscountry = $jResult->address->country;
+    $d->addressareacode = $jResult->address->areacode;
 }
 
 // If currency is incorrectly set then someone maybe trying to cheat the system
