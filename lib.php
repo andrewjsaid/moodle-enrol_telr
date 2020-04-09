@@ -187,65 +187,12 @@ class enrol_telr_plugin extends enrol_plugin {
                 echo '<p><a href="'.$wwwroot.'/login/">'.get_string('loginsite').'</a></p>';
                 echo '</div>';
             } else {
-                
-                $pd = new stdClass();
-                $pd->storeid = $this->get_config('storeid');
-                $pd->status = 0;
-                $pd->timecreated = time();
-                $pd->courseid = $course->id;
-                $pd->userid = $USER->id;
-                $pd->instanceid = $instance->id;
-                $pd->id = $DB->insert_record("enrol_telr_pending", $pd);
-
-                /// Open a connection to Telr to get the URL
-                $c = new curl();
-                $telrdomain = 'secure.telr.com';
-                $options = array(
-                    'httpheader' => array('application/x-www-form-urlencoded', "Host: $telrdomain"),
-                    'timeout' => 30,
-                    'CURLOPT_HTTP_VERSION' => CURL_HTTP_VERSION_1_1,
-                );
-                $location = "https://$telrdomain/gateway/order.json";
-                $telrreq = array(
-                    'ivp_method'    => 'create',
-                    'ivp_store'     => $this->get_config('storeid'),
-                    'ivp_authkey'   => $this->get_config('authkey'),
-                    'ivp_test'      => $this->get_config('testmode'),
-                    'ivp_amount'    => $cost,
-                    'ivp_currency'  => $instance->currency,
-                    'ivp_cart'      => $pd->id,
-                    'ivp_desc'      => $shortname,
-                    'return_auth'   => "$CFG->wwwroot/enrol/telr/check.php?id=$pd->id",
-                    'return_decl'   => "$CFG->wwwroot/enrol/telr/check.php?id=$pd->id",
-                    'return_can'    => "$CFG->wwwroot/enrol/telr/check.php?id=$pd->id",
-                    'ivp_framed'    => 2,
-
-                    'bill_fname'    => $USER->firstname,
-                    'bill_sname'    => $USER->lastname,
-                    'bill_addr1'    => $USER->address,
-                    'bill_city'     => $USER->city,
-                    'bill_country'  => $USER->country,
-                    'bill_email'    => $USER->email,
-                );
-                $result = $c->post($location, $telrreq, $options);
-
-                if ($c->get_errno()) {
-                    \enrol_telr\util::message_telr_error_to_admin("Could not connect to telr", $result);
-                    die;
-                }
-
-                $jsonResult = json_decode($result);
-                if(isset($jsonResult->error)) {
-                    \enrol_telr\util::message_telr_error_to_admin("Telr error message", $result);
-                    die;
-                }
-
-                $ref = $jsonResult->order->ref;
-                $telrorderurl = $jsonResult->order->url;
-
-                $pd->orderref = $ref;
-                $pd->status = 1;
-                $DB->update_record('enrol_telr_pending', $pd);
+                //Sanitise some fields before building the PayPal form
+                $coursefullname  = format_string($course->fullname, true, array('context'=>$context));
+                $userid = $USER->id;
+                $courseid = $instance->courseid;
+                $instanceid = $instance->id;
+                $instancename    = $this->get_instance_name($instance);
 
                 include($CFG->dirroot.'/enrol/telr/enrol.html');
             }

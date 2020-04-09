@@ -1,9 +1,19 @@
-<style>
-    #telr {
-        width: 100%;
-        min-width: 600px;
-        height: 600px;
-        frameborder: 0;
-    }
-</style>
-<iframe id="telr" src="<?php p($telrorderurl) ?>"></iframe>
+<div align="center">
+
+    <p class="telr-paymentrequired"><?php print_string("paymentrequired") ?></p>
+    <p class="telr-instancename"><b><?php echo $instancename; ?></b></p>
+    <p class="telr-coursename"><b><?php echo $coursefullname; ?></b></p>
+    <p class="telr-cost"><b><?php echo get_string("cost").": {$instance->currency} {$localisedcost}"; ?></b></p>
+    <p class="telr-telraccepted"><?php print_string('telraccepted', 'enrol_telr') ?></p>
+    <p class="telr-paymentinstant"><?php print_string("paymentinstant") ?></p>
+    <form action="/enrol/telr/begin.php" method="post">
+    
+        <input type="hidden" name="userid" value="<?php $userid ?>" />
+        <input type="hidden" name="courseid" value="<?php $courseid ?>" />
+        <input type="hidden" name="instanceid" value="<?php $instanceid ?>" />
+        <input type="submit" value="<?php print_string("sendpaymentbutton", "enrol_telr") ?>" />
+    
+    </form>
+    
+    </div>
+    
