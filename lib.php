@@ -213,7 +213,7 @@ class enrol_telr_plugin extends enrol_plugin {
                     'ivp_test'      => $this->get_config('testmode'),
                     'ivp_amount'    => $cost,
                     'ivp_currency'  => $instance->currency,
-                    'ivp_cart'      => "U{$USER->id}-C{$course->id}-I{$instance->id}",
+                    'ivp_cart'      => $pd->id,
                     'ivp_desc'      => $shortname,
                     'return_auth'   => "$CFG->wwwroot/enrol/telr/check.php?id=$pd->id",
                     'return_decl'   => "$CFG->wwwroot/enrol/telr/check.php?id=$pd->id",

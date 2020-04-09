@@ -93,7 +93,7 @@ $string['privacy:metadata:enrol_telr:enrol_telr_pending:lastorderstatus'] = 'The
 
 $string['privacy:metadata:enrol_telr:telr_com'] = 'The Telr enrolment plugin transmits user data from Moodle to the Telr website.';
 $string['privacy:metadata:enrol_telr:telr_com:address'] = 'Address of the user who is buying the course.';
-$string['privacy:metadata:enrol_telr:telr_com:cart'] = 'A hyphen-separated string that contains ID of the user (the buyer), ID of the course, ID of the enrolment instance.';
+$string['privacy:metadata:enrol_telr:telr_com:cart'] = 'An internal id to track the payment status.';
 $string['privacy:metadata:enrol_telr:telr_com:city'] = 'City of the user who is buying the course.';
 $string['privacy:metadata:enrol_telr:telr_com:country'] = 'Country of the user who is buying the course.';
 $string['privacy:metadata:enrol_telr:telr_com:email'] = 'Email address of the user who is buying the course.';
