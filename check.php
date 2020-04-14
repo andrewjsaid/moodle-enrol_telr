@@ -21,8 +21,8 @@ require_once($CFG->libdir . '/filelib.php');
 
 // Make sure we are enabled in the first place.
 if (!enrol_is_enabled('telr')) {
-    http_response_code(503);
-    throw new moodle_exception('errdisabled', 'enrol_telr');
+    \enrol_telr\util::message_telr_error_to_admin("Returned to check.php but telr is not enabled", $pd);
+    redirect(new moodle_url('/enrol/telr/return.php', array('id'=>$course->id)));
 }
 
 
@@ -80,9 +80,7 @@ $DB->update_record('enrol_telr_pending', $pd);
 if ($pd->lastorderstatuscode < 0) { // Expired, Cancelled or Declined    
     // Ununrol user
     $plugin->unenrol_user($plugin_instance, $pd->userid);
-    \enrol_telr\util::message_telr_error_to_admin(
-        "Status not completed or pending. User unenrolled from course", $pd);
-    die;
+    redirect(new moodle_url('/course/view.php', array('id'=>$course->id)));
 }
 
 // If status is pending and reason is other than echeck then we are on hold until further notice
@@ -104,7 +102,7 @@ if ($pd->lastorderstatuscode == 1 || $pd->lastorderstatuscode == 2) { // Pending
     message_send($eventdata);
 
     \enrol_telr\util::message_telr_error_to_admin("Payment pending - manual check required", $pd);
-    die;
+    redirect(new moodle_url('/enrol/telr/return.php', array('id'=>$course->id)));
 }
 
 // At this point we only proceed with a status of completed or pending with a reason of echeck
@@ -117,8 +115,7 @@ if ($existing = $DB->get_record("enrol_telr", array("orderref" => $pd->orderref)
 
 if($pd->lastorderstatuscode != 3) {
     \enrol_telr\util::message_telr_error_to_admin("Unexpected transaction code $pd->lastorderstatuscode", $pd);
-    die;
-
+    redirect(new moodle_url('/enrol/telr/return.php', array('id'=>$course->id)));
 }
 // User has paid, transaction is good
 

@@ -20,9 +20,15 @@ final class util {
      * @param string   $subject email subject
      * @param stdClass $data    Telr IPN data
      */
-    public static function message_telr_error_to_admin($subject, $message) {
+    public static function message_telr_error_to_admin($subject, $data) {
         $admin = get_admin();
         $site = get_site();
+
+        $message = "$site->fullname:  Transaction failed.\n\n$subject\n\n";
+
+        foreach ($data as $key => $value) {
+            $message .= "$key => $value\n";
+        }
 
         $eventdata = new \core\message\message();
         $eventdata->courseid          = SITEID;
