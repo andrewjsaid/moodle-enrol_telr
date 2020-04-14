@@ -11,8 +11,21 @@
         <input type="hidden" name="userid" value="<?php p($userid) ?>" />
         <input type="hidden" name="courseid" value="<?php p($courseid) ?>" />
         <input type="hidden" name="instanceid" value="<?php p($instanceid) ?>" />
+        <input type="hidden" name="repeat" value="0" />
         <input type="submit" value="<?php print_string("sendpaymentbutton", "enrol_telr") ?>" />
     
+    </form>
+
+    <?php if ($repeat_enabled == 1): ?>
+    <form action="/enrol/telr/begin.php" method="post">
+    
+        <input type="hidden" name="userid" value="<?php p($userid) ?>" />
+        <input type="hidden" name="courseid" value="<?php p($courseid) ?>" />
+        <input type="hidden" name="instanceid" value="<?php p($instanceid) ?>" />
+        <input type="hidden" name="repeat" value="1" />
+        <input type="submit" value="<?php print_string("sendrepeatpaymentbutton", "enrol_telr") ?>" />
+    <?php endif ?>
+
     </form>
     
 </div>

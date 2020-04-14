@@ -42,6 +42,7 @@ $string['pluginname'] = 'Telr';
 $string['pluginname_desc'] = 'The Telr module allows you to set up paid courses.  If the cost for any course is zero, then students are not asked to pay for entry.  There is a site-wide cost that you set here as a default for the whole site and then a course setting that you can set for each course individually. The course cost overrides the site cost.';
 $string['processexpirationstask'] = 'Telr enrolment send expiry notifications task';
 $string['sendpaymentbutton'] = 'Send payment via Telr';
+$string['sendrepeatpaymentbutton'] = "Send repeat payment via Telr";
 $string['status'] = 'Allow Telr enrolments';
 $string['status_desc'] = 'Allow users to use Telr to enrol into a course by default.';
 $string['storeid'] = 'Telr store id';
@@ -49,6 +50,36 @@ $string['storeid_desc'] = 'The store id of your Telr account';
 $string['testmode'] = 'Telr test mode';
 $string['transactions'] = 'Telr transactions';
 $string['unenrolselfconfirm'] = 'Do you really want to unenrol yourself from course "{$a}"?';
+
+$string['repeat_header'] = 'Repeat billing defaults';
+$string['repeat_header_desc'] = 'Use this section to configure defaults for repeat billing. Actual values will be taken from course enrol setting.';
+
+$string['repeat_enable'] = 'Whether to enable repeat billing';
+$string['repeat_enable_help'] = 'Whether to enable repeat billing';
+
+$string['repeat_charge'] = 'Repeat Charge (fixed)';
+$string['repeat_charge_desc'] = 'Fixed amount to charge for using repeat billing';
+$string['repeat_charge_help'] = $string['repeat_charge_desc'];
+
+$string['repeat_charge_perc'] = 'Repeat Charge (%)';
+$string['repeat_charge_perc_desc'] = 'Percentage to charge for using repeat billing.';
+$string['repeat_charge_perc_help'] = $string['repeat_charge_perc_desc'];
+
+$string['repeat_initial_perc'] = 'Initial %';
+$string['repeat_initial_perc_desc'] = 'Percentage of the total cost (before surcharge) which will be charged immediately. Blank means split equally';
+$string['repeat_initial_perc_help'] = $string['repeat_initial_perc_desc'];
+
+$string['repeat_period'] = 'Repeat Period (W/M)';
+$string['repeat_period_desc'] = 'M to indicate monthly, W to indicate weekly';
+$string['repeat_period_help'] = $string['repeat_period_desc'];
+
+$string['repeat_interval'] = 'Interval';
+$string['repeat_interval_desc'] = 'Number of periods between payments. 1 indicates monthly/weekly. 2 indicates every 2 months/weeks etc';
+$string['repeat_interval_help'] = $string['repeat_interval_desc'];
+
+$string['repeat_term'] = 'Term';
+$string['repeat_term_desc'] = 'Number of REPEAT payments, excluding the initial.';
+$string['repeat_term_help'] = $string['repeat_term_desc'];
 
 $string['privacy:metadata:enrol_telr:enrol_telr'] = 'Information about the Telr transactions for Telr enrolments.';
 $string['privacy:metadata:enrol_telr:enrol_telr:storeid'] = 'Internal identifier for the merchant.';

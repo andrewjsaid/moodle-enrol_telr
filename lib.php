@@ -187,12 +187,22 @@ class enrol_telr_plugin extends enrol_plugin {
                 echo '<p><a href="'.$wwwroot.'/login/">'.get_string('loginsite').'</a></p>';
                 echo '</div>';
             } else {
-                //Sanitise some fields before building the PayPal form
+                //Sanitise some fields before building the form
                 $coursefullname  = format_string($course->fullname, true, array('context'=>$context));
                 $userid = $USER->id;
                 $courseid = $instance->courseid;
                 $instanceid = $instance->id;
                 $instancename    = $this->get_instance_name($instance);
+
+                $repeat_enabled = $instance->customint1;
+                if($repeat_enabled == 1) {      
+                    $repeat_charge        = $instance->customdec1;
+                    $repeat_charge_perc   = $instance->customint4;
+                    $repeat_initial_perc  = $instance->customdec2;
+                    $repeat_period        = $instance->customtext1;
+                    $repeat_interval      = $instance->customint2;
+                    $repeat_term          = $instance->customint3;
+                }
 
                 include($CFG->dirroot.'/enrol/telr/enrol.html');
             }
@@ -317,6 +327,56 @@ class enrol_telr_plugin extends enrol_plugin {
         $mform->setDefault('enrolenddate', 0);
         $mform->addHelpButton('enrolenddate', 'enrolenddate', 'enrol_telr');
 
+        // Repeat billing
+        // enable        = customint1
+        // charge        = customdec1
+        // charge_perc   = customint4
+        // initial_perc  = customdec2
+        // period        = customtext1
+        // interval      = customint2
+        // term          = customint3
+
+        $options = array('optional' => true);
+        $mform->addElement('text', 'customint1', get_string('repeat_enable', 'enrol_telr'), $options);
+        $mform->setType('customint1', PARAM_RAW);
+        $mform->setDefault('customint1', $this->get_config('repeat_enable'));
+        $mform->addHelpButton('customint1', 'repeat_enable', 'enrol_telr');
+
+        $options = array('optional' => true);
+        $mform->addElement('text', 'customdec1', get_string('repeat_charge', 'enrol_telr'), $options);
+        $mform->setType('customdec1', PARAM_RAW);
+        $mform->setDefault('customdec1', $this->get_config('repeat_charge'));
+        $mform->addHelpButton('customdec1', 'repeat_charge', 'enrol_telr');
+
+        $options = array('optional' => true);
+        $mform->addElement('text', 'customint4', get_string('repeat_charge_perc', 'enrol_telr'), $options);
+        $mform->setType('customint4', PARAM_RAW);
+        $mform->setDefault('customint4', $this->get_config('repeat_charge_perc'));
+        $mform->addHelpButton('customint4', 'repeat_charge_perc', 'enrol_telr');
+
+        $options = array('optional' => true);
+        $mform->addElement('text', 'customdec2', get_string('repeat_initial_perc', 'enrol_telr'), $options);
+        $mform->setType('customdec2', PARAM_RAW);
+        $mform->setDefault('customdec2', $this->get_config('repeat_initial_perc'));
+        $mform->addHelpButton('customdec2', 'repeat_initial_perc', 'enrol_telr');
+
+        $options = array('optional' => true);
+        $mform->addElement('text', 'customtext1', get_string('repeat_period', 'enrol_telr'), $options);
+        $mform->setDefault('customtext1', $this->get_config('repeat_period'));
+        $mform->addHelpButton('customtext1', 'repeat_period', 'enrol_telr');
+
+        $options = array('optional' => true);
+        $mform->addElement('text', 'customint2', get_string('repeat_interval', 'enrol_telr'), $options);
+        $mform->setType('customint2', PARAM_RAW);
+        $mform->setDefault('customint2', $this->get_config('repeat_interval'));
+        $mform->addHelpButton('customint2', 'repeat_interval', 'enrol_telr');
+
+        $options = array('optional' => true);
+        $mform->addElement('text', 'customint3', get_string('repeat_term', 'enrol_telr'), $options);
+        $mform->setType('customint3', PARAM_RAW);
+        $mform->setDefault('customint3', $this->get_config('repeat_term'));
+        $mform->addHelpButton('customint3', 'repeat_term', 'enrol_telr');
+
         if (enrol_accessing_via_instance($instance)) {
             $warningtext = get_string('instanceeditselfwarningtext', 'core_enrol');
             $mform->addElement('static', 'selfwarn', get_string('instanceeditselfwarning', 'core_enrol'), $warningtext);
@@ -356,7 +416,12 @@ class enrol_telr_plugin extends enrol_plugin {
             'roleid' => $validroles,
             'enrolperiod' => PARAM_INT,
             'enrolstartdate' => PARAM_INT,
-            'enrolenddate' => PARAM_INT
+            'enrolenddate' => PARAM_INT,
+
+            'customint1' => PARAM_INT,
+            'customint2' => PARAM_INT,
+            'customint3' => PARAM_INT
+            
         );
 
         $typeerrors = $this->validate_param_types($data, $tovalidate);

@@ -124,6 +124,7 @@ $d->storeid = $pd->storeid;
 $d->courseid = $pd->courseid;
 $d->userid = $pd->userid;
 $d->instanceid = $pd->instanceid;
+$d->isrepeat = $pd->isrepeat;
 $d->timeupdated = time();
 
 // Record all details of the order
@@ -174,6 +175,41 @@ if ( (float) $plugin_instance->cost <= 0 ) {
 
 // Use the same rounding of floats as on the enrol form.
 $cost = format_float($cost, 2, false);
+
+$original_cost = $cost;
+$repeat_amount = 0;
+
+if(1 == $pd->isrepeat) {
+    $repeat_charge        = $instance->customdec1;
+    $repeat_charge_perc   = $instance->customint4;
+    $repeat_initial_perc  = $instance->customdec2;
+    $repeat_period        = $instance->customtext1;
+    $repeat_interval      = $instance->customint2;
+    $repeat_term          = $instance->customint3;
+
+    $initial_amount = 0;
+    if(is_numeric($repeat_initial_perc) && (float)$repeat_initial_perc > 0) {
+        $initial_amount = ((float)$repeat_initial_perc / 100.0) * $original_cost;
+    } else {
+        $initial_amount = $original_cost / ($repeat_term + 1);
+    }
+
+    $charge = $original_cost;
+    if(is_numeric($repeat_charge) && (float)$repeat_charge > 0) {
+        $charge = (float)$repeat_charge;
+    }
+    if(is_numeric($repeat_charge_perc) && (float)$repeat_charge_perc > 0) {
+        $charge = $charge + ((float)$repeat_charge_perc / 100.0) * $original_cost;
+    }
+
+    $cost = $initial_amount + $charge;
+
+    $total_repeat_amount = $original_cost - $initial_amount;
+    $repeat_amount = total_repeat_amount / $repeat_term;
+
+    $d->repeatamount = $repeat_amount;
+    $d->repeatterm = $repeat_term;
+}
 
 if ($d->amount < $cost) {
     \enrol_telr\util::message_telr_error_to_admin("Amount paid is not enough ($d->amount < $cost))", $d);

@@ -32,5 +32,42 @@ function xmldb_enrol_telr_upgrade($oldversion) {
 
     $dbman = $DB->get_manager();
 
+    if($oldversion < 2020140403) {
+        // Define field repeat to be added to enrol_telr.
+        $table = new xmldb_table('enrol_telr');
+        $field = new xmldb_field('isrepeat', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'instanceid');
+
+        // Conditionally launch add field instanceid.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('repeatamount', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NULL, null, '0', 'isrepeat');
+
+        // Conditionally launch add field instanceid.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        
+        $field = new xmldb_field('repeatterm', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NULL, null, '0', 'repeatamount');
+
+        // Conditionally launch add field instanceid.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field repeat to be added to enrol_telr_pending.
+        $table = new xmldb_table('enrol_telr_pending');
+        $field = new xmldb_field('isrepeat', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'instanceid');
+
+        // Conditionally launch add field instanceid.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Telr savepoint reached.
+        upgrade_plugin_savepoint(true, 2020140403, 'enrol', 'telr');
+    }
+
     return true;
 }

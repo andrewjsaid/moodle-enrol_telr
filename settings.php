@@ -37,8 +37,7 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect('enrol_telr/expiredaction', get_string('expiredaction', 'enrol_telr'), get_string('expiredaction_help', 'enrol_telr'), ENROL_EXT_REMOVED_SUSPENDNOROLES, $options));
 
     //--- enrol instance defaults ----------------------------------------------------------------------------
-    $settings->add(new admin_setting_heading('enrol_telr_defaults',
-        get_string('enrolinstancedefaults', 'admin'), get_string('enrolinstancedefaults_desc', 'admin')));
+    $settings->add(new admin_setting_heading('enrol_telr_defaults', get_string('enrolinstancedefaults', 'admin'), get_string('enrolinstancedefaults_desc', 'admin')));
 
     $options = array(ENROL_INSTANCE_ENABLED  => get_string('yes'),
                      ENROL_INSTANCE_DISABLED => get_string('no'));
@@ -60,4 +59,16 @@ if ($ADMIN->fulltree) {
 
     $settings->add(new admin_setting_configduration('enrol_telr/enrolperiod',
         get_string('enrolperiod', 'enrol_telr'), get_string('enrolperiod_desc', 'enrol_telr'), 0));
+
+        
+    //--- repeat billing -------------------------------------------------------------------------------------
+    $settings->add(new admin_setting_heading('enrol_telr_repeat', get_string('repeat_header', 'enrol_telr'), get_string('repeat_header_desc', 'enrol_telr')));
+    $settings->add(new admin_setting_configcheckbox('enrol_telr/repeat_enable', get_string('repeat_enable', 'enrol_telr'), '', 0));
+    $settings->add(new admin_setting_configtext('enrol_telr/repeat_charge', get_string('repeat_charge', 'enrol_telr'), get_string('repeat_charge_desc', 'enrol_telr'), 0, PARAM_FLOAT, 4));
+    $settings->add(new admin_setting_configtext('enrol_telr/repeat_charge_perc', get_string('repeat_charge_perc', 'enrol_telr'), get_string('repeat_charge_perc_desc', 'enrol_telr'), 0, PARAM_FLOAT, 4));
+    $settings->add(new admin_setting_configtext('enrol_telr/repeat_initial_perc', get_string('repeat_initial_perc', 'enrol_telr'), get_string('repeat_initial_perc_desc', 'enrol_telr'), '', PARAM_FLOAT, 4));
+    $settings->add(new admin_setting_configtext('enrol_telr/repeat_period', get_string('repeat_period', 'enrol_telr'), get_string('repeat_period_desc', 'enrol_telr'), 'M', PARAM_TEXT));
+    $settings->add(new admin_setting_configtext('enrol_telr/repeat_interval', get_string('repeat_interval', 'enrol_telr'), get_string('repeat_interval_desc', 'enrol_telr'), 1, PARAM_FLOAT, 4));
+    $settings->add(new admin_setting_configtext('enrol_telr/repeat_term', get_string('repeat_term', 'enrol_telr'), get_string('repeat_term_desc', 'enrol_telr'), 3, PARAM_FLOAT, 4));
+
 }

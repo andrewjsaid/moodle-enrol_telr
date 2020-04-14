@@ -27,6 +27,7 @@ if (!enrol_is_enabled('telr')) {
 $userid = required_param('userid', PARAM_INT);
 $courseid = required_param('courseid', PARAM_INT);
 $instanceid = required_param('instanceid', PARAM_INT);
+$repeat = required_param('repeat', PARAM_INT);
 
 $user = $DB->get_record("user", array("id" => $userid), "*", MUST_EXIST);
 $course = $DB->get_record("course", array("id" => $courseid), "*", MUST_EXIST);
@@ -40,16 +41,44 @@ $pd->timecreated = time();
 $pd->courseid = $course->id;
 $pd->userid = $user->id;
 $pd->instanceid = $instance->id;
+$pd->isrepeat = $repeat;
 $pd->id = $DB->insert_record("enrol_telr_pending", $pd);
-
-
 
 if ( (float) $instance->cost <= 0 ) {
     $cost = (float) $plugin->get_config('cost');
 } else {
     $cost = (float) $instance->cost;
 }
-$cost = format_float($cost, 2, false);
+$original_cost = $cost;
+$initial_amount = $original_cost;
+$charge = 0;
+
+if(1 == $repeat) {
+    if(0 == $instance->customint1) {
+        \enrol_telr\util::message_telr_error_to_admin("User attempted to make repeat billing when not enabled", $pd);
+        redirect(new moodle_url('/course/view.php', array('id'=>$courseid)));
+    }
+
+    $repeat_charge        = $instance->customdec1;
+    $repeat_charge_perc   = $instance->customint4;
+    $repeat_initial_perc  = $instance->customdec2;
+    $repeat_period        = $instance->customtext1;
+    $repeat_interval      = $instance->customint2;
+    $repeat_term          = $instance->customint3;
+
+    if(is_numeric($repeat_initial_perc) && (float)$repeat_initial_perc > 0) {
+        $initial_amount = ((float)$repeat_initial_perc / 100.0) * $original_cost;
+    } else {
+        $initial_amount = $original_cost / ($repeat_term + 1);
+    }
+
+    if(is_numeric($repeat_charge) && (float)$repeat_charge > 0) {
+        $charge = (float)$repeat_charge;
+    }
+    if(is_numeric($repeat_charge_perc) && (float)$repeat_charge_perc > 0) {
+        $charge = $charge + ((float)$repeat_charge_perc / 100.0) * $original_cost;
+    }
+}
 
 /// Open a connection to Telr to get the URL
 $c = new curl();
@@ -65,7 +94,7 @@ $telrreq = array(
     'ivp_store'     => $plugin->get_config('storeid'),
     'ivp_authkey'   => $plugin->get_config('authkey'),
     'ivp_test'      => $plugin->get_config('testmode'),
-    'ivp_amount'    => $cost,
+    'ivp_amount'    => format_float($initial_amount + $charge, 2, false),
     'ivp_currency'  => $instance->currency,
     'ivp_cart'      => $pd->id,
     'ivp_desc'      => $course->shortname,
@@ -81,6 +110,43 @@ $telrreq = array(
     'bill_country'  => $user->country,
     'bill_email'    => $user->email,
 );
+
+if(1 == $repeat) {
+    if(0 == $instance->customint1) {
+        \enrol_telr\util::message_telr_error_to_admin("User attempted to make repeat billing when not enabled", $pd);
+        redirect(new moodle_url('/course/view.php', array('id'=>$courseid)));
+    }
+
+    $repeat_charge        = $instance->customdec1;
+    $repeat_charge_perc   = $instance->customint4;
+    $repeat_initial_perc  = $instance->customdec2;
+    $repeat_period        = $instance->customtext1;
+    $repeat_interval      = $instance->customint2;
+    $repeat_term          = $instance->customint3;
+
+    $total_repeat_amount = $original_cost - $initial_amount;
+    $repeat_amount = $total_repeat_amount / (float)$repeat_term;
+    
+    $repeat_start = '';
+    if(strtolower($repeat_period) == 'w') {
+        $repeat_start = date("dmY", strtotime("+" . $repeat_interval . " week", time()));
+    } else if(strtolower($repeat_period) == 'm') {
+        $repeat_start = date("dmY", strtotime("+" . $repeat_interval . " month", time()));
+
+    } else{
+        \enrol_telr\util::message_telr_error_to_admin("Repeat period must be m or w", $instance);
+        die();
+    }
+
+    $telrreq['ivp_extra'] = 'repeat';
+    $telrreq['repeat_amount'] = format_float($repeat_amount, 2, false);
+    $telrreq['repeat_start'] = $repeat_start;
+    $telrreq['repeat_period'] = $repeat_period;
+    $telrreq['repeat_interval'] = $repeat_interval;
+    $telrreq['repeat_term'] = $repeat_term;
+    $telrreq['repeat_final'] = '0';
+}
+
 $result = $c->post($location, $telrreq, $options);
 
 if ($c->get_errno()) {
